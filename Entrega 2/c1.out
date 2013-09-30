@@ -1,0 +1,34 @@
+
+BLOQUE
+	CONDICIONAL
+		condicion: VARIABLE
+			nombre: x
+		verdadero: CONDICIONAL
+			condicion: VARIABLE
+				nombre: y
+			verdadero: ASIGNACION
+				var: k
+				val: CONSTANTE_ENT
+					valor: 4
+			else: ASIGNACION
+				var: arbol
+				val: BOOLEANO
+					valor: true
+	SEPARADOR
+	CONDICIONAL
+		condicion: VARIABLE
+			nombre: k
+		verdadero: CONDICIONAL
+			condicion: VARIABLE
+				nombre: t
+			verdadero: ASIGNACION
+				var: y
+				val: BOOLEANO
+					valor: true
+			else: ASIGNACION
+				var: sopa
+				val: EXPRESION_UN
+					operador: MENOS_UNARIO
+					operando:  CONSTANTE_ENT
+						valor: 4
+

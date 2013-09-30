@@ -1,0 +1,23 @@
+program
+begin
+declare x, y as int
+begin
+declare x, y as range
+x = 1..2;
+write "Write 1", x // x será de tipo range
+end;
+begin
+declare x, y as bool
+x = true;
+write "Write 2", x // x será de tipo bool
+end;
+write x = 10;
+write "Write 3", x; // x será de tipo int
+for x in 1..5 do
+begin
+declare x as range // Esconde la declaración de x hecha por el for
+x = 4..5;
+write "Write 4", x // x será de tipo range
+end
+end
+end

@@ -1,0 +1,10 @@
+program
+	begin
+		declare x as int
+		read x;
+		case x of
+			-5..0 -> writeln "Del -5 al 0"
+			0..0 -> writeln "Tengo un cero"
+			1..100 -> writeln "Del 1 al 100"
+		end
+	end

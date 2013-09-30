@@ -1,0 +1,17 @@
+program
+	begin
+		if x then
+			 if y then 
+					k = 4
+		else
+			arbol = true;
+		
+		if k then
+			if t then
+				y = true
+			else 
+				sopa = -4
+
+	end
+
+	

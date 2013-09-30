@@ -1,0 +1,7 @@
+program
+	begin
+	declare x as int
+	writeln "Introduce un rango";
+	read x;
+	writeln x
+end

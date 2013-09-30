@@ -1,0 +1,127 @@
+Gramática del lenguaje RangeX
+
+Interprete del lenguaje RangeX
+Entrega 2, Analisis Sintactico con arbol sintactico abstracto.
+CI-3725
+(Abril-Julio 2013)
+
+
+Hecho por:
+	@author: Stefano De Colli	09-10203
+	@author: Karen Troiano		09-10855
+
+
+Simbolo inicial: PROGRAMA
+
+PROGRAMA		-> TkProgram INSTRUCCION
+
+INSTRUCCION			->	ASIGNACION
+					|	CONDICIONAL
+					|	CASE
+					|	REPETICION_DET
+					|	REPETICION_INDET
+					|	BLOQUE
+					|	INPUT
+					|	OUTPUT
+
+ASIGNACION			->	VARIABLE TkAsignacion EXPRESION
+
+CONDICIONAL			->	TkIf EXPRESION TkThen INSTRUCCION ELSE
+
+ELSE				->	TkElse INSTRUCCION
+					|	lambda
+
+CASE				->	TkCase EXPRESION TkOf CASECOND TkEnd
+
+CASECOND			->	EXPRESION TkFlechaCase INSTRUCCION CASECONDDOS
+
+CASECONDDOS			->	EXPRESION TkFlechaCase INSTRUCCION CASECONDDOS
+					|	lambda
+
+REPETICION_DET		->	TkFor VARIABLE TkIn EXPRESION TkDo INSTRUCCION
+
+REPETICION_INDET	->	TkWhile EXPRESION TkDo INSTRUCCION
+
+BLOQUE				->	TkBegin DECLARE SECUENCIACION TkEnd
+
+DECLARE				->	TkDeclare LINEADECLARACION
+					|	lambda
+
+SECUENCIACION		->	SECUENCIACION TkPuntoYComa INSTRUCCION
+					|	INSTRUCCION
+
+LINEADECLARACION	->	VARIABLES TkAs TYPE
+					|	LINEADECLARACION TkPuntoYComa VARIABLES TkAs TYPE
+
+TYPE				->	TkInt
+					|	TkBool
+					|	TkRange
+
+VARIABLES			->	VARIABLES TkComma VARIABLES
+					|	VARIABLE
+
+INPUT				->	TkRead VARIABLE
+
+OUTPUT				->	TkWrite IMPRESION
+					|	TkWriteLn IMPRESION
+
+IMPRESION			->	IMPRESION TkComma STRINEXP
+					|	STRINEXP
+
+STRINEXP			->	TkString
+					|	EXPRESION
+
+EXPRESION			->	EXPRBOOL
+					|	EXPREARITME
+					|	VARIABLE
+					|	EXPRANGO
+					|	TkParAbre EXPRESION TkParCierra
+					|	FUNCION
+
+FUNCION				->	FUNCIONES TkParAbre EXPRESION TkParCierra
+
+FUNCIONES			->	TkBottom
+					|	TkRtoi
+					|	TkLength
+					|	TkPertenece
+					|	TkTop
+
+EXPRANGO			->	EXPRESION TkConstruccion EXPRESION
+					|	EXPRESION TkInterseccion EXPRESION
+
+VARIABLE			->	TkId
+
+NUMERO				->	TkNum
+
+EXPRELACIONAL		->	EXPRESION TkIgual EXPRESION
+					|	EXPRESION TkDesIgual EXPRESION
+					|	EXPRESION TkMenor EXPRESION
+					|	EXPRESION TkMenorIgual EXPRESION
+					|	EXPRESION TkMayor EXPRESION
+					|	EXPRESION TkMayorIgual EXPRESION
+
+EXPREARITME			->	BINEXPRARITM
+					|	UNEXPRARITME
+					|	NUMERO
+
+BINEXPRARITM		->	EXPRESION TkSuma EXPRESION
+					|	EXPRESION TkResta EXPRESION
+					|	EXPRESION TkAsterisco EXPRESION
+					|	EXPRESION TkDiv EXPRESION
+					|	EXPRESION TkModulo EXPRESION
+
+UNEXPRARITME		->	TkResta EXPRESION
+					|	TkSuma EXPRESION
+
+EXPRBOOL			->	EXPRBINBOOL
+					|	BOOL
+					|	EXPRELACIONAL
+					|	UNEXPRBOOL
+
+EXPRBINBOOL			->	EXPRESION TkOr EXPRESION
+					|	EXPRESION TkAnd EXPRESION
+
+UNEXPRBOOL			->	TkNot EXPRESION
+
+BOOL				->	TkTrue
+					|	TkFalse

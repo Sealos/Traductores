@@ -1,0 +1,23 @@
+program
+	begin
+	declare
+		x, y as int;
+		k as bool;
+		z as range;
+		p as int
+		
+	x = true + 3;
+
+	if x == y then
+		x = rtoi(z) + 1
+	else
+		begin
+			declare
+				z as int;
+				q as range
+				z = rtoi(q);
+			writeln z
+		end
+	end
+	
+	

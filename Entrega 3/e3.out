@@ -1,0 +1,78 @@
+Nombre & Tipo
+x
+int
+Nombre & Tipo
+y
+int
+Nombre & Tipo
+z
+range
+Nombre & Tipo
+p
+int
+<SymTable.SymTable instance at 0xb6dff68c>
+
+BLOQUE
+	TABLA DE SIMBOLOS
+	variable: x | tipo: int
+	variable: y | tipo: int
+	variable: z | tipo: range
+	variable: p | tipo: int
+
+	ASIGNACION
+		var: x
+		val: CONSTANTE_ENT
+			valor: 1
+	SEPARADOR
+	ASIGNACION
+		var: y
+		val: CONSTANTE_ENT
+			valor: 1
+	SEPARADOR
+	ASIGNACION
+		var: z
+		val: EXPRESION_BIN
+			operador: Construccion
+			operando izq: VARIABLE
+				nombre: x
+			operando der: VARIABLE
+				nombre: y
+	SEPARADOR
+	CONDICIONAL
+		condicion: EXPRESION_BIN
+			operador: Igual que
+			operando izq: VARIABLE
+				nombre: x
+			operando der: VARIABLE
+				nombre: y
+		verdadero: ASIGNACION
+			var: x
+			val: EXPRESION_BIN
+				operador: Mas
+				operando izq: FUNCION_EMB
+					nombre: rtoi
+					argumento: VARIABLE
+						nombre: z
+				operando der: CONSTANTE_ENT
+					valor: 1
+		else: BLOQUE
+			TABLA DE SIMBOLOS
+			variable: z | tipo: int
+			variable: q | tipo: range
+
+			ASIGNACION
+				var: z
+				val: FUNCION_EMB
+					nombre: rtoi
+					argumento: EXPRESION_BIN
+						operador: Construccion
+						operando izq: VARIABLE
+							nombre: x
+						operando der: VARIABLE
+							nombre: y
+			SEPARADOR
+			WRITELN
+				elemento: VARIABLE
+					nombre: z
+
+

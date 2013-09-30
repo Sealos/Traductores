@@ -1,0 +1,10 @@
+program
+begin
+declare count, value as int
+read count ;
+for i in 1..count do
+begin
+read value;
+writeln "Value: ", value
+end
+end

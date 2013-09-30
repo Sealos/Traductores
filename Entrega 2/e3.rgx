@@ -1,0 +1,38 @@
+program
+	begin
+		declare
+			a, b as int;
+			x, y as range
+
+			// Iterar
+			read a;
+			read b;
+			x = a..b;
+			for i in x do
+				writeln "Variable \"i\" es igual a: ", i;
+
+			// Iterar
+			read y;
+			for j in y do
+				write j, ", ";
+
+			a = 3 + b;
+			b = -4;
+
+			case b of
+				x -> writeln b;
+				y -> writeln a;
+				a..b -> begin
+							declare z as range
+							writeln a, b;
+							z = x <> y;
+							writeln bottom(z), -5, "..", top(z)
+						end;
+			end;
+			
+			while i < 10 do
+				begin
+					read i;
+					write "Still here!"
+				end
+	end

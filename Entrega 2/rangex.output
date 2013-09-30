@@ -1,0 +1,116 @@
+
+BLOQUE
+	READ
+		variable: n
+	SEPARADOR
+	READ
+		variable: m
+	SEPARADOR
+	ITERACION_DET
+		variable: i
+		rango: EXPRESION_BIN
+			operador: Construccion
+			operando izq: CONSTANTE_ENT
+				valor: 0
+			operando der: VARIABLE
+				nombre: n
+		instruccion: BLOQUE
+			ITERACION_DET
+				variable: j
+				rango: EXPRESION_BIN
+					operador: Construccion
+					operando izq: CONSTANTE_ENT
+						valor: 0
+					operando der: VARIABLE
+						nombre: m
+				instruccion: BLOQUE
+					CONDICIONAL
+						condicion: EXPRESION_BIN
+							operador: No igual a
+							operando izq: EXPRESION_BIN
+								operador: Modulo
+								operando izq: EXPRESION_BIN
+									operador: Mas
+									operando izq: VARIABLE
+										nombre: i
+									operando der: VARIABLE
+										nombre: j
+								operando der: CONSTANTE_ENT
+									valor: 2
+							operando der: CONSTANTE_ENT
+								valor: 0
+						verdadero: BLOQUE
+							WRITE
+								elemento: EXPRESION_BIN
+									operador: Por
+									operando izq: VARIABLE
+										nombre: i
+									operando der: VARIABLE
+										nombre: j
+								elemento: CADENA
+									valor:  
+
+
+
+	SEPARADOR
+	ITERACION_DET
+		variable: i
+		rango: EXPRESION_BIN
+			operador: Construccion
+			operando izq: CONSTANTE_ENT
+				valor: 0
+			operando der: VARIABLE
+				nombre: n
+		instruccion: BLOQUE
+			ITERACION_DET
+				variable: j
+				rango: EXPRESION_BIN
+					operador: Construccion
+					operando izq: CONSTANTE_ENT
+						valor: 0
+					operando der: VARIABLE
+						nombre: m
+				instruccion: BLOQUE
+					CASE
+					exp: EXPRESION_BIN
+						operador: Por
+						operando izq: VARIABLE
+							nombre: i
+						operando der: VARIABLE
+							nombre: j
+					caso: 
+						ran: EXPRESION_BIN
+							operador: Construccion
+							operando izq: EXPRESION_BIN
+								operador: Resta
+								operando izq: VARIABLE
+									nombre: i
+								operando der: VARIABLE
+									nombre: j
+							operando der: EXPRESION_BIN
+								operador: Mas
+								operando izq: VARIABLE
+									nombre: i
+								operando der: VARIABLE
+									nombre: j
+						ins: WRITE
+							elemento: CONSTANTE_ENT
+								valor: 1
+					caso: 
+						ran: EXPRESION_BIN
+							operador: Construccion
+							operando izq: VARIABLE
+								nombre: n
+							operando der: VARIABLE
+								nombre: m
+						ins: WRITE
+							elemento: CONSTANTE_ENT
+								valor: 0
+
+					SEPARADOR
+					WRITE
+						elemento: CADENA
+							valor:  
+
+
+

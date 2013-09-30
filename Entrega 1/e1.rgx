@@ -1,0 +1,10 @@
+program
+begiñ
+declare
+a, b, c as int;
+d, e, f as range
+a := b + 3;
+read e
+//Esto es un comentario. Debe ser ignorado.
+end
+
