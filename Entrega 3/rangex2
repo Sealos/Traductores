@@ -215,10 +215,8 @@ def t_error(t):
 	global Error
 	Error = True
 	if (t.type == 'TkNum'):
-		#print "hola"
 		print "Entero fuera de rango 32b \"%d\"en linea %s, columna %s."%(t.value, t.lineno, find_column(text, t))
 	else:
-		#print "hola1"
 		print "Error: caracter inesperado \"%s\"en linea %s, columna %s."%(t.value[0], t.lineno, find_column(text, t))
 	t.lexer.skip(1)
 	return t
@@ -266,20 +264,15 @@ class Asignacion:
 	def verificar(self):
 		global TS
 		global ErrorEst
-		a = TS.find(self.var.getVariable(), False)
-		if (a != None):
-			if (a.getReservado()):
+		self.val.verificar()
+		
+		if (not((TS.find(self.var.getVariable(), False) == None))):
+			if (TS.find(self.var.getVariable(), False).getTipo() != self.val.getTipo()): 
 				ErrorEst = True
-				print("Error en la linea %s, columna %s: se intenta modificar la variable \"%s\" la cual pertenece a una iteracion." %(self.var.getLinea() , self.var.getColumna(), self.var.getVariable()))
-			else: 
-				if (self.val.getTipo() != "TypeError" and self.var.getTipo() != self.val.getTipo()): 
-					ErrorEst = True
-					print("Error en la linea %s, columna %s: intento de asignar a la variable \"%s\" de tipo \"%s\" una expresion del tipo \"%s\"." %(self.var.getLinea() , self.var.getColumna(), self.var.getVariable(), TS.find(self.var.getVariable(), False).getTipo(), self.val.getTipo()))
+				print("Error en la linea %s, columna %s: intento de asignar a la variable \"%s\" de tipo \"%s\" una expresion del tipo \"%s\"." %(self.var.getLinea() , self.var.getColumna(), self.var.getVariable(), TS.find(self.var.getVariable(), False).getTipo(), self.val.getTipo()))
 		else:
 			ErrorEst = True
-			print("Error en linea %s, columna %s: no puede usar la variable \"%s\" pues no ha sido declarada." %(self.var.getLinea() , self.var.getColumna(), self.var.getVariable()))
-			
-		self.val.verificar()
+			print("Error en la linea %s, columna %s: no puede usar la variable \"%s\" pues no ha sido declarada." %(self.var.getLinea() , self.var.getColumna(), self.var.getVariable()))
 
 class Condicional:
 	def __init__(self, guardia, then, elsse):
@@ -297,14 +290,16 @@ class Condicional:
 		return palabra
 
 	def verificar(self):
+		if (self.guardia.getTipo() != "bool"):
+			global ErrorEst
+			ErrorEst = True
+			if (self.guardia.getTipo() == None):
+				pass
+			else:
+				print("Error en la linea %s, columna %s: la condicion no es del tipo \"bool\"." %(self.guardia.getLinea() , self.guardia.getColumna()))
 		self.then.verificar()
 		if (self.elsse != "vacio"):
 			self.elsse.verificar()
-
-		if (self.guardia.getTipo() != "TypeError" and self.guardia.getTipo() != "bool"):
-			global ErrorEst
-			ErrorEst = True
-			print("Error en la linea %s, columna %s: la condicion no es del tipo \"bool\"." %(self.guardia.getLinea() , self.guardia.getColumna()))
 
 class Case:
 	def __init__(self, exp, casos):
@@ -321,13 +316,13 @@ class Case:
 		return palabra
 
 	def verificar(self):
-		self.exp.verificar()
-
-		if (self.exp.getTipo() != "TypeError" and self.exp.getTipo() != "int"):
+		if (self.exp.getTipo() != "int"):
 			global ErrorEst
 			ErrorEst = True
-			print("Error en la linea %s, columna %s: la condicion no es del tipo \"int\"." %(self.exp.getLinea() , self.exp.getColumna()))
-
+			if (self.guardia.getTipo() == None):
+				pass
+			else:
+				print("Error en la linea %s, columna %s: la condicion no es del tipo \"int\"." %(self.exp.getLinea() , self.exp.getColumna()))
 		self.casos.verificar()
 
 class CaseCond:
@@ -344,12 +339,13 @@ class CaseCond:
 		return palabra
 
 	def verificar(self):
-		self.rango.verificar()
-
-		if (self.rango.getTipo() == "TypeError" and self.rango.getTipo() != "range"):
+		if (self.rango.getTipo() != "range"):
 			global ErrorEst
 			ErrorEst = True
-			print("Error en la linea %s, columna %s: la condicion no es del tipo \"range\"." %(self.rango.getLinea() , self.rango.getColumna()))
+			if (self.guardia.getTipo() == None):
+				pass
+			else:
+				print("Error en la linea %s, columna %s: la condicion no es del tipo \"range\"." %(self.rango.getLinea() , self.rango.getColumna()))
 
 		self.instruccion.verificar()
 		if (self.casos != "vacio"):
@@ -371,18 +367,17 @@ class RepeticionDet:
 
 	def verificar(self):
 		global ErrorEst
-		global TS
-		TS = SymTable(TS, False)
-		if (self.variable.getTipo(True) == "variable" or self.variable.getTipo() == "TypeError"):
-			if not(TS.insertFor(self.variable.getVariable(), "int")):
-				ErrorEst = True
-				x = self.variable
-				print("Error en linea %s, columna %s: la variable '%s' ya ha sido declarada." %(x.getLinea() , x.getColumna(), x.getVariable()))
-		if (self.rango.getTipo() != "TypeError" and self.rango.getTipo() != "range"):
+		if (self.variable.getTipo() == None or self.rango.getTipo() == None):
 			ErrorEst = True
-			print("Error en la linea %s, columna %s: el rango no es del tipo \"range\"." %(self.rango.getLinea() , self.rango.getColumna()))
-		self.instruccion.verificar()
-		TS = TS.getPadre()
+		else:
+			if (self.variable.getTipo() != "int" or self.rango.getTipo() != "range"):
+				ErrorEst = True
+				if (self.variable.getTipo() != "int"):
+					print("Error en la linea %s, columna %s: la condicion no es del tipo \"int\"." %(self.variable.getLinea() , self.variable.getColumna()))
+				if (self.rango.getTipo() != "range"):
+					print("Error en la linea %s, columna %s: el rango no es del tipo \"range\"." %(self.rango.getLinea() , self.rango.getColumna()))
+			else:
+				self.instruccion.verificar()
 
 class RepeticionIndet:
 	def __init__(self, guardia, instruccion):
@@ -397,13 +392,15 @@ class RepeticionIndet:
 		return palabra
 
 	def verificar(self):
-		if (self.guardia.getTipo() != "TypeError"):
-			if (self.guardia.getTipo() != "bool"):
-				global ErrorEst
-				ErrorEst = True
+		if (self.guardia.getTipo() != "bool"):
+			global ErrorEst
+			ErrorEst = True
+			if (self.guardia.getTipo() == None):
+				pass
+			else:
 				print("Error en la linea %s, columna %s: la condicion no es del tipo \"bool\"." %(self.guardia.getLinea() , self.guardia.getColumna()))
-
-		self.instruccion.verificar()
+		else:
+			self.instruccion.verificar()
 
 class Bloque:
 	def __init__(self, declaraciones, instrucciones, end):
@@ -503,13 +500,27 @@ class Simple:
 			palabra += tab + "valor: " + str(self.valor)
 		return palabra
 
+	def verificar(self):
+		global TS
+		if (self.tipo == "VARIABLE"):
+			if (TS.find(self.valor, False) == None):
+				global ErrorEst
+				ErrorEst = True
+				print("Error en línea %s, columna %s: no puede usar la variable \"%s\" pues no ha sido declara." %(self.linea, self.columna, self.valor))
+			else: 
+				return
+		else:
+			return
+
 	def getTipo(self, flag = False):
 		if (self.tipo == "CONSTANTE_ENT"):
 			return "int"
 		elif (self.tipo == "VARIABLE"):
 			global TS
 			if (TS.find(self.valor, False) == None):
-				return "TypeError" # No encontrado
+				global ErrorEst
+				ErrorEst = True
+				return "TypeError"
 			else:
 				if (not flag):
 					return TS.find(self.valor, False).getTipo()
@@ -519,18 +530,6 @@ class Simple:
 			return "bool"
 		else:
 			return "string"
-
-	def verificar(self):
-		global TS
-		if (self.tipo == "VARIABLE"):
-			if (TS.find(self.valor, False) == None):
-				global ErrorEst
-				ErrorEst = True
-				print("Error en línea %s, columna %s: no puede usar la variable \"%s\" pues no ha sido declara." %(self.linea, self.columna, self.valor))
-
-	def getExpresion(self):
-		#print("hola3")
-		return str(self.valor)
 
 class Secuenciacion:
 	def __init__(self, instruccion1, instruccion2):
@@ -558,10 +557,10 @@ class LineaDeclaracion:
 
 	def getLinea(self):
 		return self.linea
-
+		
 	def getColumna(self):
 		return self.columna
-
+		
 	def getLista(self):
 		return self.declaraciones
 
@@ -599,14 +598,6 @@ class IO:
 		return palabra
 
 	def verificar(self):
-		if (self.nombre == 'READ'):
-			global TS
-			a = TS.find(self.expresion.getVariable(), False)
-			if (a != None):
-				if (a.getReservado()):
-					global ErrorEst
-					ErrorEst = True
-					print("Error en la linea %s, columna %s: se intenta modificar la variable \"%s\" la cual pertenece a una iteracion." %(self.expresion.getLinea() , self.expresion.getColumna(), self.expresion.getVariable()))
 		self.expresion.verificar()
 
 class Impresion:
@@ -619,7 +610,7 @@ class Impresion:
 		palabra += tab + "elemento: " + self.expresion2.toString(tab, False)
 		return palabra
 
-	def verificar(self, reserved = None):
+	def verificar(self):
 		self.expresion1.verificar()
 		self.expresion2.verificar()
 
@@ -649,27 +640,26 @@ class Funcion:
 		return palabra
 
 	def getTipo(self, flag = False):
-		if (self.expresion.getTipo != "TypeError"):
-			return "int"
-		else:
-			return "TypeError"
+		return "int"
 
 	def verificar(self):
-		self.expresion.verificar()
+		global TS
 		global ErrorEst
-		if (self.expresion.getTipo() != "TypeError"):
+		if (self.expresion.getTipo() != None):
 			if (self.expresion.getTipo() != "range"):
 				ErrorEst = True
 				print("Error en línea %s, columna %s: el parametro de la funcion \"%s\" es del tipo \"%s\" y debe ser del tipo \"range\"." %(self.expresion.getLinea(), self.expresion.getColumna(), self.valor, self.expresion.getTipo()))
+		else:
+			ErrorEst = True
 
 class ExpresionUnaria:
-	def __init__(self, tipo, operador, operando, linea, columna, simbolo):
+	def __init__(self, tipo, operador, operando,linea,columna):
 		self.tipo = tipo
 		self.operador = operador
 		self.operando = operando
 		self.linea = linea
 		self.columna = columna
-		self.simbolo = simbolo
+		#self.tipo = None
 
 	def getLinea(self):
 		return self.linea
@@ -684,51 +674,42 @@ class ExpresionUnaria:
 			palabra = "EXPRESION_UN\n"
 		tab = tab + "\t"
 		if (type(self.operador) is str):
-			palabra += tab + "operador: "+ str(self.tipo) + "\n"
+			palabra += tab + "operador: "+ self.tipo + "\n"
 		else:
 			palabra += tab + "operador: "  + self.operador.toString(tab, False) + "\n"
 		palabra += tab + "operando:  "  + self.operando.toString(tab, False)
 		return palabra
 
-	def getTipo(self, flag = False):
-		# Tenemos un error interno, entonces el tipo de la expresion sigue tienendo errores
-		if (self.operando.getTipo() == "TypeError"):
-			return "TypeError"
-
-		# El operador es el TkNot, la expresion tiene que ser bool
-		if (self.tipo == "NEGACION" and self.operando.getTipo() == "bool"):
+	def getTipo(self,flag = False):
+		if (self.tipo == "NEGACION"):
 			return "bool"
-
-		# El operador es un + o -, la expresion tiene que ser int
-		if ((self.tipo == "MAS_UNARIO" or self.tipo == "MENOS_UNARIO")
-			and self.operando.getTipo() == "int"):
+		else:
 			return "int"
 
-		# No encontramos nada... Devolvemos TypeError
 		return "TypeError"
 
 	def verificar(self):
-		self.operando.verificar()
-		a = self.operando
-
-		if (self.getTipo() == "TypeError" and a.getTipo() != "TypeError"):
-			global ErrorEst
+		global ErrorEst
+		if (self.operando.getTipo() == None or self.operando.getTipo() == "TypeError"):
 			ErrorEst = True
-			impr = "Error en línea " + str(self.linea) + ", columna " + str(self.columna) + ": Intento de uso del operador unario \"" + str(self.operador) + "\" con la "
-			if (a.getTipo(True) == "variable"):
-				impr = impr + "variable \"" + str(a.getVariable()) + "\""
+		else:
+			if (self.operando.getTipo(True) == "variable"):
+				if (self.tipo == "NEGACION" and self.operando.getTipo() != "bool"):
+					ErrorEst = True
+					print("Error en línea %s, columna %s: intento de \"negacion\" de la variable \"%s\" de tipo \"%s\"." %(self.linea, self.columna, self.operando.getVariable(), self.operando.getTipo()))
+				elif (((self.tipo == "MENOS_UNARIO" or self.tipo == "MAS_UNARIO") and self.operando.getTipo() != "int")):
+					ErrorEst = True
+					print("Error en línea %s, columna %s: intento de uso del operador unario \"%s\" en la variable \"%s\" de tipo \"%s\"." %(self.linea, self.columna,self.operador , self.operando.getVariable(), self.operando.getTipo()))
 			else:
-				impr = impr + "expresion \"" + str(a.getExpresion()) + "\""
-
-			impr = impr + " del tipo \"" + str(a.getTipo()) + "\"."
-			print(impr)
-
-	def getExpresion(self):
-		#print("hola1")
-		return self.simbolo + " " + self.operando.getExpresion()
+				if (self.tipo == "NEGACION" and self.operando.getTipo() != "bool"):
+					ErrorEst = True
+					print("Error en línea %s, columna %s: el operador unario \"%s\" con un tipo \"%s\"." %(self.linea, self.columna, self.operador, self.operando.getTipo()))
+				elif (((self.tipo == "MENOS_UNARIO" or self.tipo == "MAS_UNARIO") and self.operando.getTipo() != "int")):
+					ErrorEst = True
+					print("Error en línea %s, columna %s: el operador unario \"%s\" con un tipo \"%s\"." %(self.linea, self.columna, self.operador, self.operando.getTipo()))
 
 class ExprBinaria:
-	def __init__(self, operacion, tipo, operando1, operando2, relacional, linea, columna, simbolo):
+	def __init__(self, operacion, tipo, operando1, operando2, relacional,linea,columna):
 		self.operacion = operacion
 		self.tipo = tipo
 		self.operando1 = operando1
@@ -736,14 +717,11 @@ class ExprBinaria:
 		self.relacional = relacional
 		self.linea = linea
 		self.columna = columna
-		self.simbolo = simbolo
+		#self.tipo = None
 
 		self.opBool = set(['And', 'Or'])
 		self.opInt = set(['Construccion','Modulo', 'Div', 'Resta', 'Igual que', 'No igual a', 'Menor que', 'Menor Igual que', 'Mayor que', 'Mayor Igual que'])
 		self.opRango = set(['Interseccion'])
-
-		self.devuelveBool = set(['Igual que', 'No igual a', 'Menor que', 'Menor Igual que', 'Mayor que', 'Mayor Igual que'])
-		self.devuelveInt = set(['Modulo', 'Div', 'Resta', 'Mas', 'Por'])
 
 	def getLinea(self):
 		return self.linea
@@ -770,73 +748,108 @@ class ExprBinaria:
 		return palabra
 
 	def getTipo(self, flag = False):
-		#print "Intentando comparar un operador de tipo " + str(self.operando1.getTipo()) + " operando 2 con" + str(self.operando2.getTipo()) + "OPERADOR " + str(self.operacion)
-		# Tenemos un error interno, entonces el tipo de la expresion sigue tienendo errores
-		if (self.operando1.getTipo() == "TypeError" or self.operando1.getTipo() == "TypeError"):
-			return "TypeError"
-
-		# No tenemos errores, verificamos los tipos
-		# El operador es un operador que devuelve booleanos
-		if (self.operacion == "Or" or self.operacion == "And"
-			and (self.operando1.getTipo() == "bool" and self.operando2.getTipo() == "bool")):
+		if (self.operacion == "Or" or self.operacion == "And" or self.operacion == 'Igual que'
+			or self.operacion == 'No igual a' or self.operacion == 'Menor que' or self.operacion == 'Menor Igual que'
+			or self.operacion == 'Mayor que' or self.operacion == 'Mayor Igual que' or self.operacion == 'Pertenece'):
 			return "bool"
-
-		if (self.operacion in self.devuelveBool
-			and (self.operando1.getTipo() == "int"  and self.operando2.getTipo() == "int")):
-			return "bool"
-
-		if (self.operacion == 'Pertenece'
-			and (self.operando1.getTipo() == "int" and self.operando2.getTipo() == "range")):
-			return "bool"
-
-		# El operador devuelve int
-		if (self.operacion in self.devuelveInt
-			and (self.operando1.getTipo() == "int" and self.operando2.getTipo() == "int")):
+		if (self.operacion == 'Construccion' or self.operacion == 'Interseccion'
+			or (self.operacion == 'Mas' and self.operando1.getTipo() == "range")):
+			return "range"
+		if (self.operacion == "Resta" or self.operacion == "Por" or self.operacion == 'Div'
+			or self.operacion == 'Modulo' or (self.operacion == 'Mas' and self.operando1.getTipo() == "int")):
 			return "int"
 
-		# El operador devuelve range
-		if (self.operacion == 'Construccion'
-			and (self.operando1.getTipo() == "int" and self.operando2.getTipo() == "int")):
-				return "range"
-
-		if (self.operacion == 'Interseccion' or self.operacion == 'Mas'
-			and (self.operando1.getTipo() == "range" and self.operando2.getTipo() == "range")):
-			return "range"
-
-		if (self.operacion == 'Por'
-			and (self.operando1.getTipo() == "range" and self.operando2.getTipo() == "int")):
-			return "range"
-
-		# No encontramos nada... Devolvemos TypeError
 		return "TypeError"
 
 	def verificar(self):
 		self.operando1.verificar()
-		self.operando2.verificar()
-		a = self.operando1
-		b = self.operando2
-		if (self.getTipo() == "TypeError" and a.getTipo() != "TypeError" and b.getTipo() != "TypeError"):
-			global ErrorEst
+		self.operando1.verificar()
+		global ErrorEst
+		if (self.operando1.getTipo() == None or self.operando2.getTipo() == None or self.operando1.getTipo() == "TypeError" or self.operando2.getTipo() == "TypeError"):
 			ErrorEst = True
-			impr = "Error en línea " + str(self.linea) + ", columna " + str(self.columna) + ": Intento de utilizar el operador \"" + str(self.operacion) + "\" con la "
-			if (a.getTipo(True) == "variable"):
-				impr = impr + "variable \"" + str(a.getVariable()) + "\""
+		else:
+			if (self.operando1.getTipo(True) == "variable" or self.operando2.getTipo(True) == "variable"):
+				a = self.operando1
+				b = self.operando2
+				if (a.getTipo(True) == "variable" and b.getTipo(True) == "variable"):
+					if (self.operacion == "Pertenece"):
+						if (self.operando1.getTipo() != "int" or self.operando2.getTipo() != "range"):
+							ErrorEst = True
+							print("Error en línea %s, columna %s: Intento de utilizar el operador \"%s\" con la variable \"%s\" del tipo \"%s\" y la variable \"%s\" del tipo \"%s\"." %(self.linea, self.columna, self.operacion, a.getVariable(), a.getTipo(), b.getVariable(), b.getTipo()))
+					
+					if (self.operacion in self.opRango or (self.operacion == 'Mas' and self.operando1.getTipo() == "range") or (self.operacion == 'Por' and self.operando1.getTipo() == "range")):
+						if (self.operando1.getTipo() != "range" or self.operando2.getTipo() != "range"):
+							ErrorEst = True
+							print("Error en línea %s, columna %s: Intento de utilizar el operador \"%s\" con la variable \"%s\" del tipo \"%s\" y la variable \"%s\" del tipo \"%s\"." %(self.linea, self.columna, self.operacion, a.getVariable(), a.getTipo(), b.getVariable(), b.getTipo()))
+
+					if (self.operacion in self.opBool):
+						if (self.operando1.getTipo() != "bool" or self.operando2.getTipo() != "bool"):
+							ErrorEst = True
+							print("Error en línea %s, columna %s: Intento de utilizar el operador \"%s\" con la variable \"%s\" del tipo \"%s\" y la variable \"%s\" del tipo \"%s\"." %(self.linea, self.columna, self.operacion, a.getVariable(), a.getTipo(), b.getVariable(), b.getTipo()))
+
+					if (self.operacion in self.opInt or (self.operacion == 'Mas' and self.operando1.getTipo() == "int") or (self.operacion == 'Por' and self.operando1.getTipo() == "int")):
+						if (self.operando1.getTipo() != "int" or self.operando2.getTipo() != "int"):
+							ErrorEst = True
+							print("Error en línea %s, columna %s: Intento de utilizar el operador \"%s\" con la variable \"%s\" del tipo \"%s\" y la variable \"%s\" del tipo \"%s\"." %(self.linea, self.columna, self.operacion, a.getVariable(), a.getTipo(), b.getVariable(), b.getTipo()))
+				
+				elif (a.getTipo(True) == "variable"):
+					if (self.operando1.getTipo() != "int" or self.operando2.getTipo() != "range"):
+							ErrorEst = True
+							print("Error en línea %s, columna %s: Intento de utilizar el operador \"%s\" con la variable \"%s\" del tipo \"%s\" y un operando del tipo \"%s\"." %(self.linea, self.columna, self.operacion, a.getVariable(), a.getTipo(), b.getTipo()))
+					
+					if (self.operacion in self.opRango or (self.operacion == 'Mas' and self.operando1.getTipo() == "range") or (self.operacion == 'Por' and self.operando1.getTipo() == "range")):
+						if (self.operando1.getTipo() != "range" or self.operando2.getTipo() != "range"):
+							ErrorEst = True
+							print("Error en línea %s, columna %s: Intento de utilizar el operador \"%s\" con la variable \"%s\" del tipo \"%s\" y un operando del tipo \"%s\"." %(self.linea, self.columna, self.operacion, a.getVariable(), a.getTipo(), b.getTipo()))
+
+					if (self.operacion in self.opBool):
+						if (self.operando1.getTipo() != "bool" or self.operando2.getTipo() != "bool"):
+							ErrorEst = True
+							print("Error en línea %s, columna %s: Intento de utilizar el operador \"%s\" con la variable \"%s\" del tipo \"%s\" y un operando del tipo \"%s\"." %(self.linea, self.columna, self.operacion, a.getVariable(), a.getTipo(), b.getTipo()))
+
+					if (self.operacion in self.opInt or (self.operacion == 'Mas' and self.operando1.getTipo() == "int") or (self.operacion == 'Por' and self.operando1.getTipo() == "int")):
+						if (self.operando1.getTipo() != "int" or self.operando2.getTipo() != "int"):
+							ErrorEst = True
+							print("Error en línea %s, columna %s: Intento de utilizar el operador \"%s\" con la variable \"%s\" del tipo \"%s\" y un operando del tipo \"%s\"." %(self.linea, self.columna, self.operacion, a.getVariable(), a.getTipo(), b.getTipo()))
+				elif (b.getTipo(True) == "variable"):
+					if (self.operacion == "Pertenece"):
+						if (self.operando1.getTipo() != "int" or self.operando2.getTipo() != "range"):
+							ErrorEst = True
+							print("Error en línea %s, columna %s: Intento de utilizar el operador \"%s\" con el operando de tipo \"%s\" y la variable \"%s\" del tipo \"%s\"." %(self.linea, self.columna, self.operacion, a.getTipo(), b.getVariable(), b.getTipo()))
+					
+					if (self.operacion in self.opRango or (self.operacion == 'Mas' and self.operando1.getTipo() == "range") or (self.operacion == 'Por' and self.operando1.getTipo() == "range")):
+						if (self.operando1.getTipo() != "range" or self.operando2.getTipo() != "range"):
+							ErrorEst = True
+							print("Error en línea %s, columna %s: Intento de utilizar el operador \"%s\" con el operando de tipo \"%s\" y la variable \"%s\" del tipo \"%s\"." %(self.linea, self.columna, self.operacion, a.getTipo(), b.getVariable(), b.getTipo()))
+
+					if (self.operacion in self.opBool):
+						if (self.operando1.getTipo() != "bool" or self.operando2.getTipo() != "bool"):
+							ErrorEst = True
+							print("Error en línea %s, columna %s: Intento de utilizar el operador \"%s\" con el operando de tipo \"%s\" y la variable \"%s\" del tipo \"%s\"." %(self.linea, self.columna, self.operacion, a.getTipo(), b.getVariable(), b.getTipo()))
+
+					if (self.operacion in self.opInt or (self.operacion == 'Mas' and self.operando1.getTipo() == "int") or (self.operacion == 'Por' and self.operando1.getTipo() == "int")):
+						if (self.operando1.getTipo() != "int" or self.operando2.getTipo() != "int"):
+							ErrorEst = True
+							print("Error en línea %s, columna %s: Intento de utilizar el operador \"%s\" con el operando de tipo \"%s\" y la variable \"%s\" del tipo \"%s\"." %(self.linea, self.columna, self.operacion, a.getTipo(), b.getVariable(), b.getTipo()))
 			else:
-				impr = impr + "expresion \"" + str(a.getExpresion()) + "\""
+				if (self.operacion == "Pertenece"):
+					if (self.operando1.getTipo() != "int" or self.operando2.getTipo() != "range"):
+						ErrorEst = True
+						print("Error en línea %s, columna %s: error de tipos, el operador \"%s\" no puede ser usado con un tipo \"%s\" y un tipo \"%s\"." %(self.linea, self.columna, self.operacion, self.operando1.getTipo(), self.operando2.getTipo()))
+				if (self.operacion in self.opRango or (self.operacion == 'Mas' and self.operando1.getTipo() == "range") or (self.operacion == 'Por' and self.operando1.getTipo() == "range")):
+					if (self.operando1.getTipo() != "range" or self.operando2.getTipo() != "range"):
+						ErrorEst = True
+						print("Error en línea %s, columna %s: error de tipos, el operador \"%s\" no puede ser usado con un tipo \"%s\" y un tipo \"%s\"." %(self.linea, self.columna, self.operacion, self.operando1.getTipo(), self.operando2.getTipo()))
 
-			impr = impr + " del tipo \"" + a.getTipo() + "\" y una "
+				if (self.operacion in self.opBool):
+					if (self.operando1.getTipo() != "bool" or self.operando2.getTipo() != "bool"):
+						ErrorEst = True
+						print("Error en línea %s, columna %s: error de tipos, el operador \"%s\" no puede ser usado con un tipo \"%s\" y un tipo \"%s\"." %(self.linea, self.columna, self.operacion, self.operando1.getTipo(), self.operando2.getTipo()))
 
-			if (b.getTipo(True) == "variable"):
-				impr = impr + "variable \"" + str(b.getVariable()) + "\""
-			else:
-				impr = impr + "expresion \"" + str(b.getExpresion()) + "\""
-
-			impr = impr + " del tipo \"" + str(b.getTipo()) + "\"."
-			print(impr)
-
-	def getExpresion(self):
-		#print("hola2")
-		return str(self.operando1.getExpresion()) + " " + str(self.simbolo) + " " + str(self.operando2.getExpresion())
+				if (self.operacion in self.opInt or (self.operacion == 'Mas' and self.operando1.getTipo() == "int") or (self.operacion == 'Por' and self.operando1.getTipo() == "int")):
+					if (self.operando1.getTipo() != "int" or self.operando2.getTipo() != "int"):
+						ErrorEst = True
+						print("Error en línea %s, columna %s: error de tipos, el operador \"%s\" no puede ser usado con un tipo \"%s\" y un tipo \"%s\"." %(self.linea, self.columna, self.operacion, self.operando1.getTipo(), self.operando2.getTipo()))
 
 
 #---------------------------#
@@ -885,7 +898,7 @@ def p_PROGRAMA(p):
 	p[0] = p[2]
 	if (not (Error)):
 		global TS
-		TS = SymTable(None)
+		TS = None
 		p[0].verificar()
 		if (not (ErrorEst)):
 			global impresion
@@ -1024,6 +1037,7 @@ def p_VARIABLES(p):
 		s = p.lexpos(2)
 		p[0] = Variables(p[1], p[3], k, find_column_parser(text, s, k))
 
+
 def p_INPUT(p):
 	"""
 	INPUT : TkRead VARIABLE
@@ -1091,9 +1105,9 @@ def p_EXPRANGO(p):
 	"""
 	k = p.lineno(2)
 	s = find_column_parser(text, p.lexpos(2), k) - 2
-	if (p[2] == '..'): p[0] = ExprBinaria('Construccion', 'range', p[1], p[3], False, k, s, p[2])
-	elif (p[2] == '<>'):  p[0] = ExprBinaria('Interseccion','range', p[1], p[3], False, k, s, p[2])
-	elif (p[2] == '>>'):  p[0] = ExprBinaria('Pertenece','range', p[1], p[3], False, k, s, p[2])
+	if (p[2] == '..'): p[0] = ExprBinaria('Construccion', 'range', p[1], p[3], False,k,s)
+	elif (p[2] == '<>'):  p[0] = ExprBinaria('Interseccion','range', p[1], p[3], False,k,s)
+	elif (p[2] == '>>'):  p[0] = ExprBinaria('Pertenece','range', p[1], p[3], False,k,s)
 
 def p_VARIABLE(p):
 	"""
@@ -1123,12 +1137,12 @@ def p_EXPRELACIONAL(p):
 	"""
 	k = p.lineno(2)
 	s = find_column_parser(text, p.lexpos(2), k) - 2
-	if (p[2] == '=='): p[0] = ExprBinaria('Igual que', 'boolean', p[1], p[3], True, k, s, p[2])
-	elif (p[2] == '/='): p[0] = ExprBinaria('No igual a', 'boolean', p[1], p[3], True, k, s, p[2])
-	elif (p[2] == '<'): p[0] = ExprBinaria('Menor que', 'boolean', p[1], p[3], True, k, s, p[2])
-	elif (p[2] == '<='): p[0] = ExprBinaria('Menor Igual que', 'boolean', p[1], p[3], True, k, s, p[2])
-	elif (p[2] == '>'): p[0] = ExprBinaria('Mayor que', 'boolean', p[1], p[3], True, k, s, p[2])
-	elif (p[2] == '>='): p[0] = ExprBinaria('Mayor Igual que', 'boolean', p[1], p[3], True, k, s, p[2])
+	if (p[2] == '=='): p[0] = ExprBinaria('Igual que', 'boolean', p[1], p[3], True,k,s)
+	elif (p[2] == '/='): p[0] = ExprBinaria('No igual a', 'boolean', p[1], p[3], True,k,s)
+	elif (p[2] == '<'): p[0] = ExprBinaria('Menor que', 'boolean', p[1], p[3], True,k,s)
+	elif (p[2] == '<='): p[0] = ExprBinaria('Menor Igual que', 'boolean', p[1], p[3], True,k,s)
+	elif (p[2] == '>'): p[0] = ExprBinaria('Mayor que', 'boolean', p[1], p[3], True,k,s)
+	elif (p[2] == '>='): p[0] = ExprBinaria('Mayor Igual que', 'boolean', p[1], p[3], True,k,s)
 
 def p_EXPREARITME(p):
 	"""
@@ -1148,11 +1162,11 @@ def p_BINEXPRARITM(p):
 	"""
 	k = p.lineno(2)
 	s = find_column_parser(text, p.lexpos(2), k)
-	if (p[2] == '+'): p[0] = ExprBinaria('Mas', 'integer', p[1], p[3], False, k, s, p[2])
-	elif (p[2] == '-'): p[0] = ExprBinaria('Resta', 'integer', p[1], p[3], False, k, s, p[2])
-	elif (p[2] == '*'): p[0] = ExprBinaria('Por', 'integer', p[1], p[3], False, k, s, p[2])
-	elif (p[2] == '/'): p[0] = ExprBinaria('Div', 'integer', p[1], p[3], False, k, s, p[2])
-	elif (p[2] == '%'): p[0] = ExprBinaria('Modulo', 'integer', p[1], p[3], False, k, s, p[2])
+	if (p[2] == '+'): p[0] = ExprBinaria('Mas', 'integer', p[1], p[3], False,k,s)
+	elif (p[2] == '-'): p[0] = ExprBinaria('Resta', 'integer', p[1], p[3], False,k,s)
+	elif (p[2] == '*'): p[0] = ExprBinaria('Por', 'integer', p[1], p[3], False,k,s)
+	elif (p[2] == '/'): p[0] = ExprBinaria('Div', 'integer', p[1], p[3], False,k,s)
+	elif (p[2] == '%'): p[0] = ExprBinaria('Modulo', 'integer', p[1], p[3], False,k,s)
 
 def p_UNEXPRARITME(p):
 	"""
@@ -1162,9 +1176,9 @@ def p_UNEXPRARITME(p):
 	k = p.lineno(1)
 	s = find_column_parser(text, p.lexpos(1), k) + 1
 	if (p[1] == '-'):
-		p[0] = ExpresionUnaria('MENOS_UNARIO', p[1], p[2], k, s, p[1])
+		p[0] = ExpresionUnaria('MENOS_UNARIO', p[1] , p[2],k,s)
 	else: 
-		p[0] = ExpresionUnaria('MAS_UNARIO', p[1], p[2], k, s, p[1])
+		p[0] = ExpresionUnaria('MAS_UNARIO', p[1], p[2],k,s)
 	
 def p_EXPRBOOL(p):
 	"""
@@ -1182,8 +1196,8 @@ def p_EXPRBINBOOL(p):
 	"""
 	k = p.lineno(2)
 	s = find_column_parser(text, p.lexpos(2), k)
-	if (p[2] == "or"): p[0] = ExprBinaria('Or', 'boolean', p[1], p[3], False, k, s, p[2])
-	else: p[0] = ExprBinaria('And', 'boolean', p[1], p[3], False, k, s, p[2])
+	if (p[2] == "or"): p[0] = ExprBinaria('Or', 'boolean', p[1], p[3], False,k,s)
+	else: p[0] = ExprBinaria('And', 'boolean', p[1], p[3], False,k,s)
 
 def p_UNEXPRBOOL(p):
 	"""
@@ -1191,7 +1205,7 @@ def p_UNEXPRBOOL(p):
 	"""
 	k = p.lineno(1)
 	s = find_column_parser(text, p.lexpos(1), k)
-	p[0] = ExpresionUnaria('NEGACION', p[1], p[2], k, s, p[1])
+	p[0] = ExpresionUnaria('NEGACION', p[1], p[2], k,s)
 
 def p_BOOL(p):
 	"""
@@ -1200,7 +1214,7 @@ def p_BOOL(p):
 	"""
 	k = p.lineno(1)
 	s = find_column_parser(text, p.lexpos(1), k)
-	p[0] = Simple('BOOLEANO', p[1], k, s)
+	p[0] = Simple('BOOLEANO', p[1],k,s)
 
 def p_error(p):
 	global Error

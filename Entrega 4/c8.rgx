@@ -1,7 +1,7 @@
 program
 begin
-	declare		top_,bottom_ as int;
-				range1, range2 as range
+	declare top_,bottom_ as int;
+					range1, range2 as range
 
 	begin
 		declare numero1, numero2 as int
@@ -25,9 +25,7 @@ begin
 				end
 		end;
 		
-		write "Ingrese rango: ";
-		read range2;
-		write "\n";
+		write "Ingrese rango: ";read range2;write "\n";
 	
 		range1 = range2 * (-14);
 

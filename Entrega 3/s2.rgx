@@ -1,0 +1,15 @@
+program
+	begin
+		declare
+			i, j, k, x as int;
+			a as range
+
+		for i in a do
+			for k in a do
+				for j in a do
+					begin
+						j = j + 1;
+						i = i + 1;
+						k = k + 1
+					end
+	end

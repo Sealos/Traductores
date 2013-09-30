@@ -1,0 +1,17 @@
+program
+	begin
+	declare
+		x, y as int;
+		q, w as bool;
+		z, s as range
+
+		x = true + 3; // Error
+		x = false + true; // Error
+		x = x + q; // Error
+		x = (x + (x + x * x + w + x) + x); // Error 1 solo
+
+		q = w >> x; // Error
+		q = x >> z; // Bien
+		z = z + s; // Bien
+		q = x + z // Error
+	end

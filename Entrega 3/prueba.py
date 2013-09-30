@@ -374,7 +374,7 @@ class RepeticionDet:
 		global TS
 		TS = SymTable(TS, False)
 		if (self.variable.getTipo(True) == "variable" or self.variable.getTipo() == "TypeError"):
-			if not(TS.insertFor(self.variable.getVariable(), "int")):
+			if not(TS.insert(self.variable.getVariable(), "int", True)):
 				ErrorEst = True
 				x = self.variable
 				print("Error en linea %s, columna %s: la variable '%s' ya ha sido declarada." %(x.getLinea() , x.getColumna(), x.getVariable()))
@@ -603,6 +603,7 @@ class IO:
 			global TS
 			a = TS.find(self.expresion.getVariable(), False)
 			if (a != None):
+				print str(a.getReservado())
 				if (a.getReservado()):
 					global ErrorEst
 					ErrorEst = True

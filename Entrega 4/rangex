@@ -20,6 +20,7 @@
 import ply.lex as lex
 import ply.yacc as yacc
 import sys
+import re
 from SymTable import *
 
 global impresion 
@@ -228,10 +229,6 @@ def t_error(t):
 #	Clases				#
 #-----------------------#
 
-#def verificarValor(value, clase):
-	#if (t.value > 2147483647 or t.value < -2147483648):
-		# Imprimir error dinamico
-
 class Declaracion:
 	def __init__(self, variables ,tipo ,linea, columna):
 		self.variables = variables
@@ -284,10 +281,10 @@ class Asignacion:
 	# Revisado
 	def ejecutar(self):
 		expresion = self.val
+		global TS
 		variable = TS.find(self.var.getVariable(), False)
 		val, val1 = expresion.evaluar()
-
-		varible.update(val, val1)
+		variable.update(val, val1)
 
 class Condicional:
 	def __init__(self, guardia, then, elsse):
@@ -427,7 +424,7 @@ class RepeticionDet:
 		inf, sub = self.rango.evaluar()
 		for i in range(inf, sub + 1):
 			var.update(i)
-			self.instruccion.evaluar()
+			self.instruccion.ejecutar()
 
 		# Cambiamos la TS
 		TS = TS.getPadre()
@@ -457,7 +454,7 @@ class RepeticionIndet:
 	def ejecutar(self):
 		res, we = self.guardia.evaluar()
 		while res:
-			self.instruccion.evaluar()
+			self.instruccion.ejecutar()
 			res, we = self.guardia.evaluar()
 
 class Bloque:
@@ -595,13 +592,14 @@ class Simple:
 		res = None
 		# Ok
 		if (self.tipo == "BOOLEANO"):
-			res = self.valor == "true"
+			res = (self.valor == "true")
 		elif (self.tipo == "CADENA"):
 			cadena = str(self.valor)
 			cadena = cadena.replace("\\t", "	")
 			i = cadena.count("\\n", 0, len(cadena))
 			prueba = cadena.split("\\n")
 			if (len(prueba) == 1):
+				prueba[0] = prueba[0].replace("\\", "")
 				res = prueba[0]
 			else:
 				x = 0
@@ -622,9 +620,12 @@ class Simple:
 			if (a.getDefinida() != True):
 				sys.exit("Error: La variable \"%s\" no ha sido inicializada." %(self.valor))
 			if (a.getTipo() == "bool"):
-				res = a.getValor() == "true"
-			else:
 				res = a.getValor()
+			else:
+				if (a.getTipo() == "range"):
+					return a.getValor(), a.getValor2()
+				else:
+					res = a.getValor()
 
 		return res, None
 
@@ -718,13 +719,7 @@ class IO:
 			if (tipo == 'range'):
 				self.Range(valor)
 			elif (tipo == 'int'):
-				while (not valor.isdigit()):
-					print("Error: La variable \"" + self.expresion.getVariable() + "\" es de tipo int. Introduzca un numero.")
-					valor = raw_input()
-					valor = Depurar(valor) 
-				valor = int(valor)
-				# FALTA REVSIAR 32b
-				variable.update(valor)
+				self.Int(valor)
 			elif (tipo == 'bool'):
 				while (valor != "true" and valor != "false"):
 					print("Error: La variable \"" + self.expresion.getVariable() + "\" es de tipo bool. Formatos validos: true, false")
@@ -733,99 +728,105 @@ class IO:
 				# Asignamos a la varible el valor
 				variable.update(valor == "true")
 		elif (self.nombre == 'WRITE'):
-			if (tipo != 'impresion'):
-				prin, prin2 = self.expresion.evaluar()
-				print str(prin)
-			else:
-				self.expresion.ejecutar(1)
+			palabra = imprimir(self.expresion)
+			print palabra,
+
 		elif (self.nombre == 'WRITELN'):
-			if (tipo != 'impresion'):
-				prin, prin2 = self.expresion.evaluar()
-				print str(prin) + '\n'
+			palabra = imprimir(self.expresion)
+			print(palabra)
+
+	def Int(self,valor):
+		while (not IsInt(valor)):
+			print("Error: La variable \"" + self.expresion.getVariable() + "\" es de tipo int. Introduzca un numero.")
+			valor = raw_input()
+			valor = Depurar(valor) 
+		else:
+			valor = int(valor)
+			if ((valor > 2147483647) or (valor < -2147483648)):
+				print("Error: El numero no se puede representarse en 32B.")
+				valor = raw_input()
+				valor = Depurar(valor)
+				self.Int(valor)
 			else:
-				self.expresion.ejecutar(2)
-	#Todo
+				global TS
+				variable = TS.find(self.expresion.getVariable(), False)
+				variable.update(valor)
+			
+		
+		
 	def Range(self, valor):
 		global TS
 		variable = TS.find(self.expresion.getVariable(), False)
-		while (not((',' in valor) or ('..' in valor))):
+		while (not re.match("([+-]?)[0-9]+(,|(\.\.))([+-]?)[0-9]+", valor)):
 			print("Error: La variable " + self.expresion.getVariable() + " es de tipo range. Formatos validos: 1..2 o 1,2")
 			valor = raw_input()
 			valor = Depurar(valor)
-		else: 
-			if ',' in valor:
-				prueba = valor.split(',')
-				if (len(prueba) == 2):
-					if (prueba[0].isdigit() and prueba[1].isdigit()):
-						print("Error: Las cotas no son del tipo int. Formatos validos: 1..2 o 1,2")
-						valor = raw_input()
-						valor = Depurar(valor)
-						self.Range(valor)
-					elif (prueba[0].isdigit()):
-						print("Error: La cota inferior no es del tipo int. Formatos validos: 1..2 o 1,2")
-						valor = raw_input()
-						valor = Depurar(valor)
-						self.Range(valor)
-					elif (prueba[1].isdigit()):
-						print("Error: La cota superior no es del tipo int. Formatos validos: 1..2 o 1,2")
-						valor = raw_input()
-						valor = Depurar(valor)
-						self.Range(valor)
-					else:
-						inf = prueba[0]
-						sup = prueba[1]
-						if (inf <= sup):
-							variable.update(inf,sup)
-						else:
-							print("Error: La cota inferior es mayor que la superior. Formatos validos: 1..2 o 1,2")
-							valor = raw_input()
-							valor = Depurar(valor)
-							self.Range(valor)
-				else:
-					print("Error: Existen mas de dos costas. Formatos validos: 1..2 o 1,2")
-					valor = raw_input()
-					valor = Depurar(valor)
-					self.Range(valor)
+		else:
+			prueba = valor.split(",")
+			if (len(prueba) < 2):
+				prueba = valor.split("..")
+			if (not (IsInt(prueba[0]) and IsInt(prueba[1]))):
+				print("Error: Las cotas no son del tipo int. Formatos validos: 1..2 o 1,2")
+				valor = raw_input()
+				valor = Depurar(valor)
+				self.Range(valor)
+			elif (not IsInt(prueba[0])):
+				print("Error: La cota inferior no es del tipo int. Formatos validos: 1..2 o 1,2")
+				valor = raw_input()
+				valor = Depurar(valor)
+				self.Range(valor)
+			elif (not IsInt(prueba[1])):
+				print("Error: La cota superior no es del tipo int. Formatos validos: 1..2 o 1,2")
+				valor = raw_input()
+				valor = Depurar(valor)
+				self.Range(valor)
 			else:
-				prueba = valor.split('..')
-				if (len(prueba) == 2):
-					if (not (prueba[0].isdigit() and prueba[1].isdigit())):
-						print("Error: Las cotas no son del tipo int. Formatos validos: 1..2 o 1,2")
-						valor = raw_input()
-						valor = Depurar(valor)
-						self.Range(valor)
-					elif (not (prueba[0].isdigit())):
-						print("Error: La cota inferior no es del tipo int. Formatos validos: 1..2 o 1,2")
-						valor = raw_input()
-						valor = Depurar(valor)
-						self.Range(valor)
-					elif (not (prueba[1].isdigit())):
-						print("Error: La cota superior no es del tipo int. Formatos validos: 1..2 o 1,2")
-						valor = raw_input()
-						valor = Depurar(valor)
-						self.Range(valor)
-					else:
-						inf = prueba[0]
-						sup = prueba[1]
-						if (inf <= sup):
-							variable.update(inf,sup)
-						else:
-							print("Error: La cota inferior es mayor que la superior. Formatos validos: 1..2 o 1,2")
-							valor = raw_input()
-							valor = Depurar(valor)
-							self.Range(valor)
-				else:
-					print("Error: Existen mas de dos costas. Formatos validos: 1..2 o 1,2")
+				inf = int(prueba[0])
+				sup = int(prueba[1])
+				if (inf > 2147483647 or inf < -2147483648 or sup > 2147483647 or sup < -2147483648):
+					print("Error: El numero no se puede representarse en 32B.")
 					valor = raw_input()
 					valor = Depurar(valor)
 					self.Range(valor)
+				else:
+					if (inf <= sup):
+						variable.update(inf, sup)
+					else:
+						print("Error: La cota inferior es mayor que la superior. Formatos validos: 1..2 o 1,2")
+						valor = raw_input()
+						valor = Depurar(valor)
+						self.Range(valor)
+
+def IsInt(s):
+	try: 
+		int(s)
+		return True
+	except ValueError:
+		return False
+
+def imprimir(a):
+	palabra = ""
+	if (a.getTipo() == 'impresion'):
+		palabra += a.ejecutar()
+	else:
+		res1, res2 = a.evaluar() 
+		if (res2 == None):
+			if (a.getTipo() == "bool"):
+				res1, res2 = a.evaluar()
+				if (res1):
+					palabra = palabra + "true"
+				else:
+					palabra = palabra + "false"
+			else:
+				palabra = palabra + str(res1)
+		else:
+			palabra = palabra + str(res1) + ".." + str(res2)
+	return palabra
 
 def Depurar(valor):
 	valor = valor.replace('\n', "")
 	valor = valor.replace(' ', "")
 	valor = valor.replace('\t', "")
-	valor = valor.replace('\\t', "")
-	valor = valor.replace('\\n', "")
 	return valor
 
 class Impresion:
@@ -844,32 +845,24 @@ class Impresion:
 
 	def getTipo(self):
 		return "impresion"
+
 	# Revisado
-	def ejecutar(self, write = 0):
-		palabra = ""
-		if (write == 2):
-			if (self.expresion1.getTipo() == 'impresion'):
-				self.expresion1.ejecutar(write)
-				p, p1 = self.expresion2.evaluar()
-				palabra += str(p)
-			else: 
-				p, p1 = self.expresion1.evaluar()
-				palabra += str(p)+ "\n"
-				p2, p3 = self.expresion2.evaluar()
-				palabra += str(p2)
-			print str(palabra)
+	def ejecutar(self):
+		palabra = imprimir(self.expresion1)
+		res1, res2 = self.expresion2.evaluar() 
+		if (res2 == None):
+			if (self.expresion2.getTipo() == "bool"):
+				res1, res2 = self.expresion2.evaluar()
+				if (res1):
+					palabra = palabra + "true"
+				else:
+					palabra = palabra + "false"
+			else:
+				palabra = palabra + str(res1)
 		else:
-			if (self.expresion1.getTipo() == 'impresion'):
-				self.expresion1.ejecutar(1)
-				p, p1 = self.expresion2.evaluar()
-				palabra = (str(p))
-				print palabra,
-			else: 
-				p, p1 = self.expresion1.evaluar()
-				p = str(p)
-				p2, p3 = self.expresion2.evaluar()
-				palabra += p + str(p2)
-				print palabra,
+			palabra = palabra + str(res1) + ".." + str(res2)
+
+		return palabra
 
 class Funcion:
 	def __init__(self, valor, expresion, linea, columna):
@@ -919,11 +912,11 @@ class Funcion:
 			else:
 				sys.exit("Error: El argumento de la funcion rtoi no posee las mismas cotas.")
 		elif (self.valor == "top"):
-			res = val
-		elif (self.valor == "bottom"):
 			res = val2
+		elif (self.valor == "bottom"):
+			res = val
 		else:
-			res = val - val2 + 1
+			res = val2 - val + 1
 
 		return res, None
 
@@ -1173,7 +1166,7 @@ def Suma(op11, op12, op21, op22):
 		elif (op11 > op21 and op12 > op22):
 			return op21, op12
 		else:
-			sys.exit("Error: Que no deberia pasar.")
+			sys.exit("Error de union de rangos que no deberia pasar.")
 
 def Resta(op11, op12, op21, op22):
 	resultado = op11 - op21
@@ -1192,15 +1185,23 @@ def Mult(op11, op12, op21, op22):
 			return resultado, None
 	# Es escala de rangos
 	else:
-		if (op21 >= 0):
-			return (op11 * op21), (op12 * op21)
+		if (op21 >= 0): 
+			res1, res2 = (op11 * op21), (op12 * op21)
+			if (res1 > 2147483647 or res1 < -2147483648 or res2 > 2147483647 or res2 < -2147483648):
+				sys.exit("Error: Resultado no puede representarse en 32 bits.")
+			else:
+				return res1, res2
 		else:
-			return (op12 * op21), (op11 * op21)
+			res1, res2 = (op12 * op21), (op11 * op21)
+			if (res1 > 2147483647 or res1 < -2147483648 or res2 > 2147483647 or res2 < -2147483648):
+				sys.exit("Error: Resultado no puede representarse en 32 bits.")
+			else:
+				return res1, res2
+			
 
 def Div(op11, op12, op21, op22):
 	if (op21 == 0):
-		sys.exit("Error: Intento de división por cero.")
-
+		sys.exit("Error: Intento de division por cero.")
 	resultado = op11 / op21
 	if (resultado > 2147483647 or resultado < -2147483648):
 		sys.exit("Error: Resultado no puede representarse en 32 bits.")
@@ -1208,6 +1209,8 @@ def Div(op11, op12, op21, op22):
 		return resultado, None
 
 def Mod(op11, op12, op21, op22):
+	if (op21 == 0):
+		sys.exit("Error: Intento de hacer mod por cero.")
 	resultado = op11 % op22
 	if (resultado > 2147483647 or resultado < -2147483648):
 		sys.exit("Error: Resultado no puede representarse en 32 bits.")
@@ -1337,10 +1340,6 @@ def p_PROGRAMA(p):
 		if (not (ErrorEst)):
 			TS = SymTable(None)
 			p[0].ejecutar()
-
-			#global impresion
-			#impresion += p[0].toString('', False)
-			#print impresion
 
 def p_INSTRUCCION(p):
 	"""

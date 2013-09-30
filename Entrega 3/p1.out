@@ -1,0 +1,239 @@
+
+BLOQUE
+	TABLA DE SIMBOLOS
+	variable: x1 | tipo: int
+	variable: x2 | tipo: int
+	variable: x3 | tipo: int
+
+	ASIGNACION
+		var: x1
+		val: CONSTANTE_ENT
+			valor: 4
+	SEPARADOR
+	ASIGNACION
+		var: x2
+		val: CONSTANTE_ENT
+			valor: 5
+	SEPARADOR
+	ASIGNACION
+		var: x3
+		val: CONSTANTE_ENT
+			valor: 6
+	SEPARADOR
+	BLOQUE
+		TABLA DE SIMBOLOS
+		variable: x1 | tipo: range
+		variable: y1 | tipo: range
+		variable: y2 | tipo: range
+
+		ASIGNACION
+			var: x1
+			val: EXPRESION_BIN
+				operador: Construccion
+				operando izq: CONSTANTE_ENT
+					valor: 7
+				operando der: CONSTANTE_ENT
+					valor: 37
+		SEPARADOR
+		ASIGNACION
+			var: y1
+			val: EXPRESION_BIN
+				operador: Construccion
+				operando izq: CONSTANTE_ENT
+					valor: 1
+				operando der: CONSTANTE_ENT
+					valor: 5
+		SEPARADOR
+		ASIGNACION
+			var: y2
+			val: EXPRESION_BIN
+				operador: Construccion
+				operando izq: CONSTANTE_ENT
+					valor: 2
+				operando der: CONSTANTE_ENT
+					valor: 7
+		SEPARADOR
+		CONDICIONAL
+			condicion: EXPRESION_BIN
+				operador: Pertenece
+				operando izq: CONSTANTE_ENT
+					valor: 8
+				operando der: VARIABLE
+					nombre: y2
+			verdadero: WRITE
+				elemento: CADENA
+					valor: Hola, como estas?
+			falso: WRITELN
+				elemento: CADENA
+					valor: Hola, soy x1:
+				elemento: VARIABLE
+					nombre: x1
+		SEPARADOR
+		BLOQUE
+			TABLA DE SIMBOLOS
+			variable: x2 | tipo: range
+			variable: x3 | tipo: range
+			variable: y2 | tipo: int
+			variable: y3 | tipo: int
+
+			ASIGNACION
+				var: y2
+				val: CONSTANTE_ENT
+					valor: 42
+			SEPARADOR
+			BLOQUE
+				TABLA DE SIMBOLOS
+				variable: y3 | tipo: bool
+				variable: y2 | tipo: int
+				variable: y4 | tipo: int
+
+				ASIGNACION
+					var: y2
+					val: CONSTANTE_ENT
+						valor: 7
+				SEPARADOR
+				ASIGNACION
+					var: y4
+					val: EXPRESION_BIN
+						operador: Mas
+						operando izq: VARIABLE
+							nombre: y2
+						operando der: CONSTANTE_ENT
+							valor: 3
+				SEPARADOR
+				ASIGNACION
+					var: y3
+					val: BOOLEANO
+						valor: false
+				SEPARADOR
+				CONDICIONAL
+					condicion: VARIABLE
+						nombre: y3
+					verdadero: WRITELN
+						elemento: CADENA
+							valor: Hola
+					falso: BLOQUE
+						TABLA DE SIMBOLOS
+						variable: y3 | tipo: int
+						variable: y4 | tipo: range
+
+						ASIGNACION
+							var: y3
+							val: CONSTANTE_ENT
+								valor: 8
+						SEPARADOR
+						BLOQUE
+							TABLA DE SIMBOLOS
+							variable: y3 | tipo: range
+
+							ASIGNACION
+								var: y3
+								val: EXPRESION_BIN
+									operador: Construccion
+									operando izq: CONSTANTE_ENT
+										valor: 1
+									operando der: CONSTANTE_ENT
+										valor: 5
+							SEPARADOR
+							WRITE
+								elemento: VARIABLE
+									nombre: y3
+
+						SEPARADOR
+						WRITELN
+							elemento: VARIABLE
+								nombre: y3
+
+				SEPARADOR
+				ASIGNACION
+					var: x2
+					val: EXPRESION_BIN
+						operador: Construccion
+						operando izq: CONSTANTE_ENT
+							valor: 1
+						operando der: CONSTANTE_ENT
+							valor: 10
+				SEPARADOR
+				ASIGNACION
+					var: x3
+					val: VARIABLE
+						nombre: x2
+				SEPARADOR
+				WRITELN
+					elemento: CADENA
+						valor: Soy y2:
+					elemento: VARIABLE
+						nombre: y2
+
+			SEPARADOR
+			WRITELN
+				elemento: CADENA
+					valor: Soy tambien y2:
+				elemento: VARIABLE
+					nombre: y2
+
+		SEPARADOR
+		WRITELN
+			elemento: CADENA
+				valor: Soy tambien y2:
+			elemento: VARIABLE
+				nombre: y2
+
+	SEPARADOR
+	BLOQUE
+		TABLA DE SIMBOLOS
+		variable: y1 | tipo: int
+		variable: y2 | tipo: int
+		variable: y3 | tipo: int
+
+		ASIGNACION
+			var: y1
+			val: CONSTANTE_ENT
+				valor: 1
+		SEPARADOR
+		ASIGNACION
+			var: y2
+			val: CONSTANTE_ENT
+				valor: 2
+		SEPARADOR
+		ASIGNACION
+			var: y3
+			val: CONSTANTE_ENT
+				valor: 3
+		SEPARADOR
+		WRITE
+			elemento: CADENA
+				valor: Hola somos numeros: 
+			elemento: VARIABLE
+				nombre: y1
+			elemento: VARIABLE
+				nombre: y2
+			elemento: VARIABLE
+				nombre: y3
+			elemento: VARIABLE
+				nombre: x1
+			elemento: VARIABLE
+				nombre: x2
+			elemento: VARIABLE
+				nombre: x3
+
+	SEPARADOR
+	ASIGNACION
+		var: x1
+		val: EXPRESION_BIN
+			operador: Mas
+			operando izq: EXPRESION_BIN
+				operador: Mas
+				operando izq: VARIABLE
+					nombre: x2
+				operando der: VARIABLE
+					nombre: x3
+			operando der: VARIABLE
+				nombre: x1
+	SEPARADOR
+	WRITELN
+		elemento: CADENA
+			valor: Chao: 
+		elemento: VARIABLE
+			nombre: x1
+

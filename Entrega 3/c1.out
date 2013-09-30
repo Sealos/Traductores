@@ -1,0 +1,4 @@
+
+WRITELN
+	elemento: CADENA
+		valor: ola Mundo, ke ase?

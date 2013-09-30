@@ -1,0 +1,14 @@
+program
+	begin
+		declare
+			i, j, k, x as range;
+			a as range
+
+		for i in a do
+			for k in a do
+				for j in a do
+					begin
+						declare i as bool
+						write j
+					end
+	end

@@ -5,9 +5,7 @@ program
 		k as bool;
 		z as range;
 		p as int
-		
-	x = true + 3;
-
+	
 	if x == y then
 		x = rtoi(z) + 1
 	else

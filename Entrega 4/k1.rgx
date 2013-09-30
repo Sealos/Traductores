@@ -1,7 +1,22 @@
 program
 	begin
-	declare x as int
-	writeln "Introduce un rango";
+	declare 
+		x as int;
+		y as bool;
+		z as range
+	write "Introduce un entero";
 	read x;
-	writeln x
+	x = -x + 1;
+	writeln "Esto es x +1: ", x;
+	read y;
+	writeln "esto es y: " , y;
+	read z;
+	x = top(z);
+	write "top: ", x, "\n";
+	x = bottom(z);
+	write "bottom: ", x, "\n";
+	x = length(z);
+	write "lenght: ", x, "\n";
+	x = rtoi(z);
+	write "rtoi: ", x, "\n"	
 end

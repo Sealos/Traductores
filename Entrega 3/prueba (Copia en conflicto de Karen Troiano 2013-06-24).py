@@ -215,10 +215,8 @@ def t_error(t):
 	global Error
 	Error = True
 	if (t.type == 'TkNum'):
-		#print "hola"
 		print "Entero fuera de rango 32b \"%d\"en linea %s, columna %s."%(t.value, t.lineno, find_column(text, t))
 	else:
-		#print "hola1"
 		print "Error: caracter inesperado \"%s\"en linea %s, columna %s."%(t.value[0], t.lineno, find_column(text, t))
 	t.lexer.skip(1)
 	return t
@@ -263,23 +261,22 @@ class Asignacion:
 		palabra += tab + "val: " + str(self.val.toString(tab, False))
 		return palabra
 
-	def verificar(self):
+	def verificar(self, reserved):
 		global TS
 		global ErrorEst
-		a = TS.find(self.var.getVariable(), False)
-		if (a != None):
-			if (a.getReservado()):
+		self.val.verificar()
+
+		if (TS.find(self.var.getVariable(), False) != None):
+			if (self.val.getTipo() != "TypeError" and self.var.getTipo() != self.val.getTipo()): 
 				ErrorEst = True
-				print("Error en la linea %s, columna %s: se intenta modificar la variable \"%s\" la cual pertenece a una iteracion." %(self.var.getLinea() , self.var.getColumna(), self.var.getVariable()))
-			else: 
-				if (self.val.getTipo() != "TypeError" and self.var.getTipo() != self.val.getTipo()): 
-					ErrorEst = True
-					print("Error en la linea %s, columna %s: intento de asignar a la variable \"%s\" de tipo \"%s\" una expresion del tipo \"%s\"." %(self.var.getLinea() , self.var.getColumna(), self.var.getVariable(), TS.find(self.var.getVariable(), False).getTipo(), self.val.getTipo()))
+				print("Error en la linea %s, columna %s: intento de asignar a la variable \"%s\" de tipo \"%s\" una expresion del tipo \"%s\"." %(self.var.getLinea() , self.var.getColumna(), self.var.getVariable(), TS.find(self.var.getVariable(), False).getTipo(), self.val.getTipo()))
 		else:
 			ErrorEst = True
 			print("Error en linea %s, columna %s: no puede usar la variable \"%s\" pues no ha sido declarada." %(self.var.getLinea() , self.var.getColumna(), self.var.getVariable()))
-			
-		self.val.verificar()
+
+#####################################################################################################################
+		# TODO VERIFICAR SI ESTOY USANDO PALABRA RESERVADA
+#####################################################################################################################
 
 class Condicional:
 	def __init__(self, guardia, then, elsse):
@@ -296,10 +293,10 @@ class Condicional:
 			palabra += "\n"+ tab + "falso: " +  self.elsse.toString(tab, False)
 		return palabra
 
-	def verificar(self):
-		self.then.verificar()
+	def verificar(self, reserved):
+		self.then.verificar(reserved)
 		if (self.elsse != "vacio"):
-			self.elsse.verificar()
+			self.elsse.verificar(reserved)
 
 		if (self.guardia.getTipo() != "TypeError" and self.guardia.getTipo() != "bool"):
 			global ErrorEst
@@ -320,7 +317,7 @@ class Case:
 		palabra += tab + "caso: \n" + tab + self.casos.toString(tab, False) 
 		return palabra
 
-	def verificar(self):
+	def verificar(self, reserved):
 		self.exp.verificar()
 
 		if (self.exp.getTipo() != "TypeError" and self.exp.getTipo() != "int"):
@@ -328,7 +325,7 @@ class Case:
 			ErrorEst = True
 			print("Error en la linea %s, columna %s: la condicion no es del tipo \"int\"." %(self.exp.getLinea() , self.exp.getColumna()))
 
-		self.casos.verificar()
+		self.casos.verificar(reserved)
 
 class CaseCond:
 	def __init__(self, rango, instruccion, casos):
@@ -343,17 +340,17 @@ class CaseCond:
 			palabra += tab + "caso: \n" + tab + self.casos.toString(tab, False)
 		return palabra
 
-	def verificar(self):
+	def verificar(self, reserved):
 		self.rango.verificar()
 
-		if (self.rango.getTipo() == "TypeError" and self.rango.getTipo() != "range"):
+		if (self.guardia.getTipo() == "TypeError" and self.rango.getTipo() != "range"):
 			global ErrorEst
 			ErrorEst = True
 			print("Error en la linea %s, columna %s: la condicion no es del tipo \"range\"." %(self.rango.getLinea() , self.rango.getColumna()))
 
-		self.instruccion.verificar()
+		self.instruccion.verificar(reserved)
 		if (self.casos != "vacio"):
-			self.casos.verificar()
+			self.casos.verificar(reserved)
 
 class RepeticionDet:
 	def __init__(self, variable, rango, instruccion):
@@ -369,20 +366,21 @@ class RepeticionDet:
 		palabra += tab + "instruccion: " + self.instruccion.toString(tab, False)
 		return palabra
 
-	def verificar(self):
+	def verificar(self, reserved):
 		global ErrorEst
-		global TS
-		TS = SymTable(TS, False)
-		if (self.variable.getTipo(True) == "variable" or self.variable.getTipo() == "TypeError"):
-			if not(TS.insertFor(self.variable.getVariable(), "int")):
-				ErrorEst = True
-				x = self.variable
-				print("Error en linea %s, columna %s: la variable '%s' ya ha sido declarada." %(x.getLinea() , x.getColumna(), x.getVariable()))
+		if (self.variable.getTipo() != "TypeError" and self.variable.getTipo() != "int"):
+			ErrorEst = True
+			print("Error en la linea %s, columna %s: la condicion no es del tipo \"int\"." %(self.variable.getLinea() , self.variable.getColumna()))
 		if (self.rango.getTipo() != "TypeError" and self.rango.getTipo() != "range"):
 			ErrorEst = True
 			print("Error en la linea %s, columna %s: el rango no es del tipo \"range\"." %(self.rango.getLinea() , self.rango.getColumna()))
-		self.instruccion.verificar()
-		TS = TS.getPadre()
+
+		#if (self.variable.getVariable() not in reserved):
+		a = set([self.variable.getVariable()])
+		reserved.union(a)
+		self.instruccion.verificar(reserved)
+		#else:
+			# Error en linea 5, columna 4: se intenta modificar la variable "i" la cual pertenece a una iteracion
 
 class RepeticionIndet:
 	def __init__(self, guardia, instruccion):
@@ -396,14 +394,14 @@ class RepeticionIndet:
 		palabra += tab + "instruccion: "  + self.instruccion.toString(tab, False)
 		return palabra
 
-	def verificar(self):
+	def verificar(self, reserved):
 		if (self.guardia.getTipo() != "TypeError"):
 			if (self.guardia.getTipo() != "bool"):
 				global ErrorEst
 				ErrorEst = True
 				print("Error en la linea %s, columna %s: la condicion no es del tipo \"bool\"." %(self.guardia.getLinea() , self.guardia.getColumna()))
 
-		self.instruccion.verificar()
+		self.instruccion.verificar(reserved)
 
 class Bloque:
 	def __init__(self, declaraciones, instrucciones, end):
@@ -424,7 +422,7 @@ class Bloque:
 		palabra += tab + self.instrucciones.toString(tab, False) + "\n"
 		return palabra
 
-	def verificar(self):
+	def verificar(self, reserved):
 		global TS
 		TS = SymTable(TS)
 		if (not (self.declaraciones == 'vacio')):
@@ -435,7 +433,7 @@ class Bloque:
 						ErrorEst = True
 						print("Error en linea %s, columna %s: la variable '%s' ya ha sido declarada." %(x.getLinea() , x.getColumna(), y))
 
-		self.instrucciones.verificar()
+		self.instrucciones.verificar(reserved)
 		self.end.verificar()
 
 class End:
@@ -509,6 +507,8 @@ class Simple:
 		elif (self.tipo == "VARIABLE"):
 			global TS
 			if (TS.find(self.valor, False) == None):
+				global ErrorEst
+				ErrorEst = True
 				return "TypeError" # No encontrado
 			else:
 				if (not flag):
@@ -529,8 +529,7 @@ class Simple:
 				print("Error en línea %s, columna %s: no puede usar la variable \"%s\" pues no ha sido declara." %(self.linea, self.columna, self.valor))
 
 	def getExpresion(self):
-		#print("hola3")
-		return str(self.valor)
+		return self.valor
 
 class Secuenciacion:
 	def __init__(self, instruccion1, instruccion2):
@@ -543,9 +542,9 @@ class Secuenciacion:
 		palabra += tab + self.instruccion2.toString(tab, False)
 		return palabra
 
-	def verificar(self):
-		self.instruccion1.verificar()
-		self.instruccion2.verificar()
+	def verificar(self, reserved):
+		self.instruccion1.verificar(reserved)
+		self.instruccion2.verificar(reserved)
 
 class LineaDeclaracion:
 	def __init__(self, variable, tipo, declaraciones, linea, columna):
@@ -598,15 +597,7 @@ class IO:
 			palabra += tab + self.expresion.toString(tab, True)
 		return palabra
 
-	def verificar(self):
-		if (self.nombre == 'READ'):
-			global TS
-			a = TS.find(self.expresion.getVariable(), False)
-			if (a != None):
-				if (a.getReservado()):
-					global ErrorEst
-					ErrorEst = True
-					print("Error en la linea %s, columna %s: se intenta modificar la variable \"%s\" la cual pertenece a una iteracion." %(self.expresion.getLinea() , self.expresion.getColumna(), self.expresion.getVariable()))
+	def verificar(self, reserved):
 		self.expresion.verificar()
 
 class Impresion:
@@ -724,7 +715,6 @@ class ExpresionUnaria:
 			print(impr)
 
 	def getExpresion(self):
-		#print("hola1")
 		return self.simbolo + " " + self.operando.getExpresion()
 
 class ExprBinaria:
@@ -743,7 +733,7 @@ class ExprBinaria:
 		self.opRango = set(['Interseccion'])
 
 		self.devuelveBool = set(['Igual que', 'No igual a', 'Menor que', 'Menor Igual que', 'Mayor que', 'Mayor Igual que'])
-		self.devuelveInt = set(['Modulo', 'Div', 'Resta', 'Mas', 'Por'])
+		self.devuelveInt = set(['Modulo', 'Div', 'Resta', 'Mas'])
 
 	def getLinea(self):
 		return self.linea
@@ -770,7 +760,6 @@ class ExprBinaria:
 		return palabra
 
 	def getTipo(self, flag = False):
-		#print "Intentando comparar un operador de tipo " + str(self.operando1.getTipo()) + " operando 2 con" + str(self.operando2.getTipo()) + "OPERADOR " + str(self.operacion)
 		# Tenemos un error interno, entonces el tipo de la expresion sigue tienendo errores
 		if (self.operando1.getTipo() == "TypeError" or self.operando1.getTipo() == "TypeError"):
 			return "TypeError"
@@ -791,12 +780,12 @@ class ExprBinaria:
 
 		# El operador devuelve int
 		if (self.operacion in self.devuelveInt
-			and (self.operando1.getTipo() == "int" and self.operando2.getTipo() == "int")):
+			and (self.operando1.getTipo() == "int" and self.operando1.getTipo() == "int")):
 			return "int"
 
 		# El operador devuelve range
 		if (self.operacion == 'Construccion'
-			and (self.operando1.getTipo() == "int" and self.operando2.getTipo() == "int")):
+			and (self.operando1.getTipo() == "int" and self.operando1.getTipo() == "int")):
 				return "range"
 
 		if (self.operacion == 'Interseccion' or self.operacion == 'Mas'
@@ -804,7 +793,8 @@ class ExprBinaria:
 			return "range"
 
 		if (self.operacion == 'Por'
-			and (self.operando1.getTipo() == "range" and self.operando2.getTipo() == "int")):
+			and ((self.operando1.getTipo() == "int" and self.operando2.getTipo() == "range")
+			or (self.operando1.getTipo() == "range" and self.operando2.getTipo() == "int"))):
 			return "range"
 
 		# No encontramos nada... Devolvemos TypeError
@@ -835,8 +825,7 @@ class ExprBinaria:
 			print(impr)
 
 	def getExpresion(self):
-		#print("hola2")
-		return str(self.operando1.getExpresion()) + " " + str(self.simbolo) + " " + str(self.operando2.getExpresion())
+		return self.operando1.getExpresion() + " " + self.simbolo + " " + self.operando2.getExpresion()
 
 
 #---------------------------#
@@ -885,8 +874,8 @@ def p_PROGRAMA(p):
 	p[0] = p[2]
 	if (not (Error)):
 		global TS
-		TS = SymTable(None)
-		p[0].verificar()
+		TS = None
+		p[0].verificar(set([]))
 		if (not (ErrorEst)):
 			global impresion
 			impresion += p[0].toString('', False)
